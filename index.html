@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+
+<h1>Supervised Learning</h1>
+<h2>Linear Regression</h3>
+<h3>Function used for calculating slope(m) aka and y-intercept(b) - w,b -> Mean Squared Error</h2>
+
+<form id="dataForm">
+    <label for="xValue">X Value:</label>
+    <input type="number" id="xValue" required>
+    
+    <label for="yValue">Y Value:</label>
+    <input type="number" id="yValue" required>
+
+    <button type="button" onclick="addDataPoint()">Add Data Point</button>
+</form>
+
+<button type="button" onclick="calculateMSE()">Calculate MSE</button>
+
+<div id="plot"></div>
+
+<form id="predictionForm">
+    <label for="inputX">Enter X for Prediction:</label>
+    <input type="number" id="inputX" required>
+
+    <button type="button" onclick="predictY()">Predict Y</button>
+    
+    <p id="outputY">Predicted Y: </p>
+</form>
+
+<script>
+    var xValues = [];
+    var yValues = [];
+    var m, c;
+
+    function addDataPoint() {
+        var xInput = document.getElementById('xValue');
+        var yInput = document.getElementById('yValue');
+
+        var x = parseFloat(xInput.value);
+        var y = parseFloat(yInput.value);
+
+        xValues.push(x);
+        yValues.push(y);
+
+        plotGraph();
+
+        xInput.value = '';
+        yInput.value = '';
+    }
+
+    function plotGraph() {
+        var data = [{
+            x: xValues,
+            y: yValues,
+            type: 'scatter',
+            mode: 'markers',
+            marker: { size: 8 },
+            name: 'Data Points'
+        }];
+
+        if (m !== undefined && c !== undefined) {
+            var line = {
+                x: xValues,
+                y: xValues.map(val => m * val + c),
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'red' },
+                name: 'Linear Regression Line'
+            };
+            data.push(line);
+        }
+
+        var layout = {
+            title: 'Scatter Plot with Linear Regression Line',
+            xaxis: { title: 'X Values' },
+            yaxis: { title: 'Y Values' }
+        };
+
+        Plotly.newPlot('plot', data, layout);
+    }
+
+    function calculateMSE() {
+        var n = xValues.length;
+
+        if (n < 2) {
+            alert('Please add at least 2 data points for linear regression.');
+            return;
+        }
+
+        var meanX = xValues.reduce((acc, val) => acc + val, 0) / n;
+        var meanY = yValues.reduce((acc, val) => acc + val, 0) / n;
+
+        var numerator = 0;
+        var denominator = 0;
+
+        for (var i = 0; i < n; i++) {
+            numerator += (xValues[i] - meanX) * (yValues[i] - meanY);
+            denominator += Math.pow(xValues[i] - meanX, 2);
+        }
+
+        m = numerator / denominator;
+        c = meanY - m * meanX;
+
+        var mse = 0;
+        for (var i = 0; i < n; i++) {
+            mse += Math.pow(yValues[i] - (m * xValues[i] + c), 2);
+        }
+        mse /= n;
+
+        alert('Mean Squared Error (MSE): ' + mse.toFixed(4) + '\n\nLinear Regression Line: y = ' + m.toFixed(4) + 'x + ' + c.toFixed(4));
+
+        plotGraph();
+    }
+
+    function predictY() {
+        var inputX = document.getElementById('inputX').value;
+
+        if (isNaN(inputX)) {
+            alert('Please enter a valid number for X.');
+            return;
+        }
+
+        var predictedY = m * parseFloat(inputX) + c;
+
+        document.getElementById('outputY').textContent = 'Predicted Y: ' + predictedY.toFixed(4);
+    }
+</script>
+
+</body>
+</html>
